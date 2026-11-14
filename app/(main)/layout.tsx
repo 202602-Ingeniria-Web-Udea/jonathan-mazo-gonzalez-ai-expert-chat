@@ -7,17 +7,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="flex items-center justify-between border-b-2 border-ink px-6 py-3">
-        <Link href="/chat" className="x text-lg">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-ink px-4 py-3 sm:px-6">
+        <Link href="/chat" className="x text-base sm:text-lg">
           AI Expert Chat<span className="acc">.</span>
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {user.role === 'ADMIN' && (
             <Link href="/admin" className="mono text-gray hover:text-ink">
-              Administración
+              Admin
             </Link>
           )}
-          <span className="mono text-gray">{user.name}</span>
+          <span className="mono hidden text-gray sm:inline">{user.name}</span>
           <LogoutButton />
         </div>
       </header>

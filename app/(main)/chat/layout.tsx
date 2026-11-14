@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ChatSidebar } from '@/components/chat/sidebar';
+import { ChatMainArea } from '@/components/chat/main-area';
 
 export default async function ChatLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -14,7 +15,7 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex flex-1 overflow-hidden">
       <ChatSidebar conversaciones={conversaciones} />
-      <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+      <ChatMainArea>{children}</ChatMainArea>
     </div>
   );
 }

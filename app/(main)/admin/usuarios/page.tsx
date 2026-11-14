@@ -15,8 +15,8 @@ export default async function AdminUsuariosPage() {
   });
 
   return (
-    <div className="card-ink overflow-hidden">
-      <table className="w-full text-left text-sm">
+    <div className="card-ink overflow-x-auto">
+      <table className="w-full min-w-[640px] text-left text-sm">
         <thead className="mono border-b-2 border-ink text-gray">
           <tr>
             <th className="px-4 py-3 font-normal">Nombre</th>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState } from 'react';
 
 export interface MensajeItem {
@@ -71,6 +72,12 @@ export function ChatConversation({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      <Link
+        href="/chat"
+        className="mono border-b-2 border-ink px-4 py-2.5 text-gray sm:hidden"
+      >
+        ← Conversaciones
+      </Link>
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {mensajes.length === 0 && (
           <p className="mono text-center text-gray">Escriba su primera pregunta para comenzar.</p>

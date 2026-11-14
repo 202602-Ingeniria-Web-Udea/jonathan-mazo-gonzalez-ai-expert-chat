@@ -50,8 +50,14 @@ export function ChatSidebar({ conversaciones }: { conversaciones: ConversacionIt
     }
   }
 
+  const enLista = pathname === '/chat';
+
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-r-2 border-ink">
+    <aside
+      className={`w-full shrink-0 flex-col border-ink sm:flex sm:w-72 sm:border-r-2 ${
+        enLista ? 'flex' : 'hidden'
+      }`}
+    >
       <div className="p-4">
         <button onClick={nuevaConversacion} disabled={creando} className="btn h-10 w-full">
           {creando ? 'Creando...' : 'Nueva conversación'}
