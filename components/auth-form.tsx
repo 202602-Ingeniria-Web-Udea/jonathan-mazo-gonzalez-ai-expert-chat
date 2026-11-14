@@ -59,20 +59,19 @@ export function AuthForm({ modo }: Props) {
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-        {modo === 'registro' ? 'Crear cuenta' : 'Iniciar sesión'}
-      </h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="card-ink w-full max-w-sm p-8">
+      <span className="mono text-gray">[ {modo === 'registro' ? 'Registro' : 'Acceso'} ]</span>
+      <h1 className="x mt-2 text-3xl">{modo === 'registro' ? 'Crear cuenta' : 'Iniciar sesión'}</h1>
+      <p className="mt-2 text-sm text-gray">
         {modo === 'registro'
           ? 'Regístrese para comenzar a conversar con el asistente.'
           : 'Ingrese sus credenciales para continuar.'}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         {modo === 'registro' && (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-sm font-medium text-black dark:text-zinc-50">
+            <label htmlFor="name" className="mono">
               Nombre
             </label>
             <input
@@ -81,13 +80,13 @@ export function AuthForm({ modo }: Props) {
               type="text"
               required
               autoComplete="name"
-              className="rounded-lg border border-black/[.08] bg-transparent px-3.5 py-2.5 text-sm outline-none focus:border-black/30 dark:border-white/[.145] dark:focus:border-white/30"
+              className="border-2 border-ink bg-transparent px-3.5 py-2.5 text-sm outline-none"
             />
           </div>
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-sm font-medium text-black dark:text-zinc-50">
+          <label htmlFor="email" className="mono">
             Correo electrónico
           </label>
           <input
@@ -96,12 +95,12 @@ export function AuthForm({ modo }: Props) {
             type="email"
             required
             autoComplete="email"
-            className="rounded-lg border border-black/[.08] bg-transparent px-3.5 py-2.5 text-sm outline-none focus:border-black/30 dark:border-white/[.145] dark:focus:border-white/30"
+            className="border-2 border-ink bg-transparent px-3.5 py-2.5 text-sm outline-none"
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className="text-sm font-medium text-black dark:text-zinc-50">
+          <label htmlFor="password" className="mono">
             Contraseña
           </label>
           <input
@@ -111,37 +110,33 @@ export function AuthForm({ modo }: Props) {
             required
             minLength={modo === 'registro' ? 8 : undefined}
             autoComplete={modo === 'registro' ? 'new-password' : 'current-password'}
-            className="rounded-lg border border-black/[.08] bg-transparent px-3.5 py-2.5 text-sm outline-none focus:border-black/30 dark:border-white/[.145] dark:focus:border-white/30"
+            className="border-2 border-ink bg-transparent px-3.5 py-2.5 text-sm outline-none"
           />
         </div>
 
         {error && (
-          <p className="rounded-lg bg-red-500/10 px-3.5 py-2.5 text-sm text-red-600 dark:text-red-400">
+          <p className="border-2 border-ink bg-accent/10 px-3.5 py-2.5 text-sm text-ink">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={cargando}
-          className="mt-2 flex h-11 w-full items-center justify-center rounded-full bg-foreground text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-60 dark:hover:bg-[#ccc]"
-        >
-          {cargando ? 'Procesando...' : modo === 'registro' ? 'Crear cuenta' : 'Iniciar sesión'}
+        <button type="submit" disabled={cargando} className="btn mt-2 h-11 w-full">
+          {cargando ? 'Procesando...' : modo === 'registro' ? 'Crear cuenta →' : 'Iniciar sesión →'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mono mt-6 text-center text-gray">
         {modo === 'registro' ? (
           <>
             ¿Ya tiene una cuenta?{' '}
-            <Link href="/login" className="font-medium text-black dark:text-zinc-50">
+            <Link href="/login" className="acc">
               Inicie sesión
             </Link>
           </>
         ) : (
           <>
             ¿No tiene una cuenta?{' '}
-            <Link href="/registro" className="font-medium text-black dark:text-zinc-50">
+            <Link href="/registro" className="acc">
               Regístrese
             </Link>
           </>
