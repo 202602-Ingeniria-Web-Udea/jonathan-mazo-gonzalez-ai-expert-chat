@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
-import { generarRespuestaSimulada } from '@/lib/ai-simulado';
+import { generarRespuestaIA, type MensajeIA } from '@/lib/ai';
 
 async function obtenerConversacionPropia(id: string, usuarioId: string) {
   const conversacion = await prisma.conversacion.findUnique({ where: { id } });
@@ -54,13 +54,42 @@ export async function POST(
     return NextResponse.json({ error: 'El mensaje no puede estar vacío' }, { status: 400 });
   }
 
+  // El historial previo se arma antes de guardar el mensaje nuevo, para
+  // mandarle a la IA el contexto conversacional completo (multi-turno).
+  const historialPrevio = await prisma.mensaje.findMany({
+    where: { conversacionId: id },
+    orderBy: { createdAt: 'asc' },
+    select: { rol: true, contenido: true },
+  });
+
   const mensajeUsuario = await prisma.mensaje.create({
     data: { conversacionId: id, rol: 'USUARIO', contenido },
   });
 
-  // Fase de IA simulada (Taller 2): se reemplaza por una llamada real al
-  // proveedor de IA en la fase de integración.
-  const respuesta = generarRespuestaSimulada(contenido);
+  const historial: MensajeIA[] = [
+    ...historialPrevio.map(
+      (m): MensajeIA => ({
+        role: m.rol === 'USUARIO' ? 'user' : 'assistant',
+        content: m.contenido,
+      })
+    ),
+    { role: 'user', content: contenido },
+  ];
+
+  let respuesta: string;
+  try {
+    respuesta = await generarRespuestaIA(historial);
+  } catch (error) {
+    console.error('Error al generar respuesta de IA:', error);
+    return NextResponse.json(
+      {
+        error: 'No se pudo generar la respuesta del asistente. Intente de nuevo en unos segundos.',
+        mensajeUsuario,
+      },
+      { status: 502 }
+    );
+  }
+
   const mensajeAsistente = await prisma.mensaje.create({
     data: { conversacionId: id, rol: 'ASISTENTE', contenido: respuesta },
   });

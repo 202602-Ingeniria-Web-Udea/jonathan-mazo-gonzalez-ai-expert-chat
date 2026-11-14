@@ -48,7 +48,23 @@ export function ChatConversation({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error ?? 'No se pudo enviar el mensaje');
+        // Si el mensaje del usuario sí quedó guardado (falló solo la IA),
+        // se reemplaza el optimista por el real en vez de borrarlo.
+        if (data.mensajeUsuario) {
+          setMensajes((actual) => [
+            ...actual.filter((m) => m.id !== mensajeOptimista.id),
+            {
+              id: data.mensajeUsuario.id,
+              rol: 'USUARIO',
+              contenido: data.mensajeUsuario.contenido,
+            },
+          ]);
+        } else {
+          setMensajes((actual) => actual.filter((m) => m.id !== mensajeOptimista.id));
+          setTexto(contenido);
+        }
+        setError(data.error ?? 'No se pudo enviar el mensaje');
+        return;
       }
 
       setMensajes((actual) => [
@@ -61,10 +77,10 @@ export function ChatConversation({
         },
       ]);
       router.refresh();
-    } catch (err) {
+    } catch {
       setMensajes((actual) => actual.filter((m) => m.id !== mensajeOptimista.id));
       setTexto(contenido);
-      setError(err instanceof Error ? err.message : 'No se pudo enviar el mensaje');
+      setError('No se pudo conectar con el servidor. Intente de nuevo.');
     } finally {
       setEnviando(false);
     }

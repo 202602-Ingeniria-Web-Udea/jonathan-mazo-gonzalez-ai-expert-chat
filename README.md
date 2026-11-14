@@ -22,12 +22,11 @@ código, aclara conceptos (estructuras de datos, algoritmos, paradigmas,
 buenas prácticas) y ayuda a entender errores y excepciones. No está
 diseñado para responder sobre temas fuera de ese dominio.
 
-> **Estado de la integración de IA**: en esta entrega (Taller 2) las
-> respuestas del asistente son **simuladas** (`lib/ai-simulado.ts`), tal
-> como pide el enunciado para esta fase. La integración con un proveedor de
-> IA real (Groq) y el System Prompt especializado se desarrollan en la
-> siguiente fase (Proyecto IA), reemplazando únicamente esa función sin
-> tocar el resto de la arquitectura.
+> **Estado de la integración de IA**: el asistente usa un modelo real a
+> través de la API de [Groq](https://groq.com) (`lib/ai.ts`), con un System
+> Prompt que define su identidad, dominio, límites y formato de respuesta.
+> El historial completo de la conversación se envía en cada solicitud para
+> mantener contexto multi-turno.
 
 ## Credenciales de prueba
 
@@ -126,7 +125,7 @@ lib/
   session.ts                 # Creación/lectura/destrucción de sesiones (cookie httpOnly)
   password.ts                # Hash y verificación con bcrypt
   prisma.ts                  # Cliente de Prisma (vía adapter de Postgres)
-  ai-simulado.ts              # Respuestas simuladas del asistente (Taller 2)
+  ai.ts                       # Integración con Groq y System Prompt del asistente
 prisma/
   schema.prisma               # User, Session, Conversacion, Mensaje
   seed.ts                      # Usuarios de prueba
@@ -158,6 +157,26 @@ etiquetas y datos secundarios, sobre un fondo hueso con retícula vertical
 visible. Bordes gruesos de 2px, botones con sombra dura tipo "offset" y
 acento en azul eléctrico (`#2f6fff`).
 
+## Proveedor de IA y System Prompt
+
+- **Proveedor**: [Groq](https://groq.com), a través de su API compatible
+  con OpenAI (`https://api.groq.com/openai/v1/chat/completions`). El
+  modelo se configura con la variable `GROQ_MODEL` (por defecto
+  `openai/gpt-oss-120b`), así que se puede cambiar sin tocar código si
+  el modelo deja de estar disponible.
+- **Flujo**: la pregunta del usuario se guarda primero en la base de
+  datos; luego se arma el historial completo de la conversación
+  (incluyéndola) y se envía a Groq junto con el System Prompt. La
+  respuesta del asistente también se guarda como mensaje.
+- **System Prompt** (`lib/ai.ts`): define identidad (asistente de
+  programación), dominio (explicación de código, conceptos, errores),
+  comportamiento (responde en español formal, reconoce incertidumbre en
+  vez de inventar, redirige preguntas fuera de su dominio, no genera código
+  malicioso) y formato de respuesta (conciso, con bloques de código cuando
+  aplica).
+- La clave de API (`GROQ_API_KEY`) solo se usa desde el backend
+  (`lib/ai.ts`, con `import 'server-only'`); nunca se expone al navegador.
+
 ## Notas de implementación
 
 - El título de cada conversación se asigna automáticamente a partir del
@@ -165,6 +184,7 @@ acento en azul eléctrico (`#2f6fff`).
 - Un usuario `ADMIN` no puede quitarse su propio rol de administrador
   desde el panel (validado en `PATCH /api/users/[id]`), para evitar
   quedarse sin acceso por accidente.
-- `generarRespuestaSimulada()` (`lib/ai-simulado.ts`) es el único punto que
-  cambia al integrar un proveedor de IA real; el resto del flujo de
-  conversaciones y mensajes no se modifica.
+- Si la llamada a Groq falla, el mensaje del usuario queda guardado (para
+  no perder la pregunta) pero no se genera mensaje de respuesta; la API
+  devuelve `502` y el chat lo muestra como un error, sin borrar lo que el
+  usuario escribió.
