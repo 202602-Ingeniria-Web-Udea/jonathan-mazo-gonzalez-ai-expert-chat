@@ -6,7 +6,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const user = await requireUser();
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-ink px-4 py-3 sm:px-6">
         <Link href="/chat" className="x text-base sm:text-lg">
           AI Expert Chat<span className="acc">.</span>

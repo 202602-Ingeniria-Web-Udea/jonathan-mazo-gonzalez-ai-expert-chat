@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
-import { generarRespuestaIA, type MensajeIA } from '@/lib/ai';
+import { generarRespuestaIA, ErrorIA, type MensajeIA } from '@/lib/ai';
 
 async function obtenerConversacionPropia(id: string, usuarioId: string) {
   const conversacion = await prisma.conversacion.findUnique({ where: { id } });
@@ -81,13 +81,11 @@ export async function POST(
     respuesta = await generarRespuestaIA(historial);
   } catch (error) {
     console.error('Error al generar respuesta de IA:', error);
-    return NextResponse.json(
-      {
-        error: 'No se pudo generar la respuesta del asistente. Intente de nuevo en unos segundos.',
-        mensajeUsuario,
-      },
-      { status: 502 }
-    );
+    const mensajeError =
+      error instanceof ErrorIA
+        ? error.userMessage
+        : 'No se pudo generar la respuesta del asistente. Intente de nuevo en unos segundos.';
+    return NextResponse.json({ error: mensajeError, mensajeUsuario }, { status: 502 });
   }
 
   const mensajeAsistente = await prisma.mensaje.create({

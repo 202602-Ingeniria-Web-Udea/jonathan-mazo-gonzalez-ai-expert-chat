@@ -34,35 +34,80 @@ export interface MensajeIA {
   content: string;
 }
 
+/**
+ * Error con un mensaje ya listo para mostrarle al usuario (en vez del
+ * detalle crudo de la API, que no debe exponerse ni es comprensible).
+ */
+export class ErrorIA extends Error {
+  constructor(
+    public readonly userMessage: string,
+    options?: ErrorOptions
+  ) {
+    super(userMessage, options);
+    this.name = 'ErrorIA';
+  }
+}
+
+const TIMEOUT_MS = 20_000;
+
 export async function generarRespuestaIA(historial: MensajeIA[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error('GROQ_API_KEY no está configurada');
+    throw new ErrorIA('El asistente no está disponible en este momento.');
   }
 
-  const response = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: MODELO,
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historial],
-      temperature: 0.4,
-      max_tokens: 1024,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: MODELO,
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historial],
+        temperature: 0.4,
+        max_tokens: 1024,
+      }),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ErrorIA('El asistente tardó demasiado en responder. Intente de nuevo.', {
+        cause: error,
+      });
+    }
+    throw new ErrorIA('No se pudo conectar con el asistente. Revise su conexión e intente de nuevo.', {
+      cause: error,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const texto = await response.text().catch(() => '');
-    throw new Error(`Groq respondió ${response.status}: ${texto.slice(0, 300)}`);
+    console.error(`Groq respondió ${response.status}: ${texto.slice(0, 500)}`);
+
+    if (response.status === 429) {
+      throw new ErrorIA('El asistente está muy solicitado en este momento. Intente de nuevo en unos segundos.');
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new ErrorIA('El asistente no está disponible en este momento.');
+    }
+    if (response.status >= 500) {
+      throw new ErrorIA('El proveedor de IA no está disponible en este momento. Intente de nuevo más tarde.');
+    }
+    throw new ErrorIA('No se pudo generar la respuesta del asistente.');
   }
 
   const data = await response.json();
   const contenido = data.choices?.[0]?.message?.content;
   if (typeof contenido !== 'string' || !contenido.trim()) {
-    throw new Error('Groq no devolvió una respuesta válida');
+    throw new ErrorIA('El asistente no devolvió una respuesta válida. Intente reformular su pregunta.');
   }
 
   return contenido;

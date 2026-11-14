@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Markdown } from './markdown';
 
 export interface MensajeItem {
   id: string;
@@ -98,15 +99,21 @@ export function ChatConversation({
         {mensajes.length === 0 && (
           <p className="mono text-center text-gray">Escriba su primera pregunta para comenzar.</p>
         )}
-        <div className="mx-auto flex max-w-2xl flex-col gap-4">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4">
           {mensajes.map((mensaje) => (
             <div
               key={mensaje.id}
-              className={`max-w-[85%] border-2 border-ink px-4 py-2.5 text-sm whitespace-pre-wrap ${
-                mensaje.rol === 'USUARIO' ? 'self-end bg-ink text-white' : 'self-start bg-white text-ink'
+              className={`max-w-[85%] border-2 border-ink px-4 py-2.5 ${
+                mensaje.rol === 'USUARIO'
+                  ? 'self-end bg-ink text-white whitespace-pre-wrap'
+                  : 'self-start bg-white text-ink'
               }`}
             >
-              {mensaje.contenido}
+              {mensaje.rol === 'ASISTENTE' ? (
+                <Markdown contenido={mensaje.contenido} />
+              ) : (
+                mensaje.contenido
+              )}
             </div>
           ))}
           {enviando && (
