@@ -4,10 +4,11 @@ import { PrismaClient } from '../generated/prisma/client';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
-// Las migraciones crean las tablas en el esquema "public" (el default de
-// Postgres/Supabase cuando no se configura `multiSchema`), así que el
-// adapter debe apuntar ahí también.
-const adapter = new PrismaPg({ connectionString });
+// El parámetro `?schema=` en la cadena de conexión solo lo entiende el motor
+// de migraciones de Prisma; el driver `pg` (usado en runtime por el
+// adapter) lo ignora y por defecto apunta a "public". Por eso el esquema
+// ("ai_expert_chat") se pasa aquí explícitamente, como segundo argumento.
+const adapter = new PrismaPg({ connectionString }, { schema: 'ai_expert_chat' });
 const prisma = new PrismaClient({ adapter });
 
 export { prisma };
