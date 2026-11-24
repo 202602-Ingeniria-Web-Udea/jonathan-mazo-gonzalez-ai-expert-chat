@@ -42,8 +42,9 @@ Creadas por el script de seed (`npm run db:seed`):
 
 ## Roles
 
-- **ADMIN**: gestiona usuarios (cambia roles) y consulta estadísticas
-  generales del sistema, además de poder conversar como cualquier usuario.
+- **ADMIN**: gestiona usuarios (cambia roles), consulta estadísticas
+  generales del sistema y configura el System Prompt del asistente desde
+  `/admin/configuracion`, además de poder conversar como cualquier usuario.
 - **USER**: crea conversaciones, envía mensajes y gestiona únicamente sus
   propias conversaciones (historial, eliminación). No puede ver ni
   modificar usuarios. Esto se valida tanto ocultando la UI como en cada
@@ -113,23 +114,27 @@ app/
   (auth)/login/, registro/   # Páginas públicas de autenticación
   (main)/                    # Rutas protegidas (requieren sesión)
     chat/                    # Lista de conversaciones + ventana de chat
-    admin/                   # Estadísticas y gestión de usuarios (solo ADMIN)
+    admin/                   # Estadísticas, gestión de usuarios y
+                              # configuración del asistente (solo ADMIN)
   api/                       # Rutas de API (register, login, logout,
-                              # conversaciones, mensajes, users, admin/stats)
+                              # conversaciones, mensajes, users, admin/stats,
+                              # admin/configuracion)
 components/
   auth-form.tsx              # Formulario compartido de login/registro
   chat/                      # Sidebar, ventana de conversación
-  admin/                     # Selector de rol
+  admin/                     # Selector de rol, formulario de configuración
 lib/
   auth.ts                    # requireUser()/requireAdmin() — autorización real
   session.ts                 # Creación/lectura/destrucción de sesiones (cookie httpOnly)
   password.ts                # Hash y verificación con bcrypt
   prisma.ts                  # Cliente de Prisma (vía adapter de Postgres)
-  ai.ts                       # Integración con Groq y System Prompt del asistente
+  ai.ts                       # Integración con Groq y System Prompt por defecto
+  configuracion.ts            # Lectura/escritura del System Prompt configurado
 prisma/
-  schema.prisma               # User, Session, Conversacion, Mensaje
+  schema.prisma               # User, Session, Conversacion, Mensaje, ConfiguracionAsistente
   seed.ts                      # Usuarios de prueba
 proxy.ts                       # Redirección optimista si no hay sesión
+PRUEBAS.md                     # 10 preguntas de prueba y evaluación del asistente
 ```
 
 ## Cómo funciona la autenticación
@@ -174,8 +179,22 @@ acento en azul eléctrico (`#2f6fff`).
   vez de inventar, redirige preguntas fuera de su dominio, no genera código
   malicioso) y formato de respuesta (conciso, con bloques de código cuando
   aplica).
+- **Configuración desde el panel de ADMIN** (`/admin/configuracion`): un
+  administrador puede editar el System Prompt en caliente, sin tocar
+  código ni redesplegar. El valor editado se guarda en la tabla
+  `ConfiguracionAsistente` (`lib/configuracion.ts`) y se usa en cada
+  mensaje nuevo; si no hay ninguno guardado, se usa el predeterminado de
+  `lib/ai.ts`. El panel incluye un botón para restaurar ese valor de
+  fábrica.
 - La clave de API (`GROQ_API_KEY`) solo se usa desde el backend
   (`lib/ai.ts`, con `import 'server-only'`); nunca se expone al navegador.
+
+## Pruebas del asistente
+
+El archivo [`PRUEBAS.md`](./PRUEBAS.md) documenta las 10 preguntas de
+prueba exigidas por el enunciado (dentro de dominio, fuera de dominio e
+incertidumbre/límites), con las respuestas reales obtenidas del asistente
+y una evaluación de cada una.
 
 ## Notas de implementación
 
