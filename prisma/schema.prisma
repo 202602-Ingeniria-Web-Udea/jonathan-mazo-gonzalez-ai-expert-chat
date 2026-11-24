@@ -67,3 +67,12 @@ model Mensaje {
   conversacion   Conversacion @relation(fields: [conversacionId], references: [id], onDelete: Cascade)
   conversacionId String
 }
+
+// Configuración editable del asistente. Es una tabla de una sola fila
+// (id fijo "default"), para que el ADMIN pueda cambiar el System Prompt
+// desde el panel sin modificar código.
+model ConfiguracionAsistente {
+  id           String   @id
+  systemPrompt String
+  updatedAt    DateTime @updatedAt
+}

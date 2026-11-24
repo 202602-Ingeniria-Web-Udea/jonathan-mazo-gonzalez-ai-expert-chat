@@ -3,7 +3,9 @@ import 'server-only';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MODELO = process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b';
 
-export const SYSTEM_PROMPT = `Usted es el asistente de "AI Expert Chat", especializado
+// Valor por defecto, usado si todavía no hay configuración guardada en la
+// base de datos o si el ADMIN restaura la configuración de fábrica.
+export const DEFAULT_SYSTEM_PROMPT = `Usted es el asistente de "AI Expert Chat", especializado
 exclusivamente en programación.
 
 Identidad y dominio:
@@ -50,7 +52,10 @@ export class ErrorIA extends Error {
 
 const TIMEOUT_MS = 20_000;
 
-export async function generarRespuestaIA(historial: MensajeIA[]): Promise<string> {
+export async function generarRespuestaIA(
+  historial: MensajeIA[],
+  systemPrompt: string = DEFAULT_SYSTEM_PROMPT
+): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new ErrorIA('El asistente no está disponible en este momento.');
@@ -70,7 +75,7 @@ export async function generarRespuestaIA(historial: MensajeIA[]): Promise<string
       },
       body: JSON.stringify({
         model: MODELO,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historial],
+        messages: [{ role: 'system', content: systemPrompt }, ...historial],
         temperature: 0.4,
         max_tokens: 1024,
       }),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 import { generarRespuestaIA, ErrorIA, type MensajeIA } from '@/lib/ai';
+import { obtenerSystemPrompt } from '@/lib/configuracion';
 
 async function obtenerConversacionPropia(id: string, usuarioId: string) {
   const conversacion = await prisma.conversacion.findUnique({ where: { id } });
@@ -78,7 +79,8 @@ export async function POST(
 
   let respuesta: string;
   try {
-    respuesta = await generarRespuestaIA(historial);
+    const systemPrompt = await obtenerSystemPrompt();
+    respuesta = await generarRespuestaIA(historial, systemPrompt);
   } catch (error) {
     console.error('Error al generar respuesta de IA:', error);
     const mensajeError =
