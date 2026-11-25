@@ -9,7 +9,7 @@ bcrypt) y control de acceso por roles tanto en el front como en el back.
 
 Proyecto integrador · Ingeniería Web · Universidad de Antioquia.
 
-**Demo en vivo:** _(se agrega aquí una vez desplegado en Vercel)_
+**Demo en vivo:** https://jonathan-mazo-gonzalez-ai-expert-ch.vercel.app/
 
 ## Integrantes
 
